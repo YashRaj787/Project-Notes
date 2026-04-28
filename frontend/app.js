@@ -1,9 +1,11 @@
-const API = "13.235.128.156:3000";
+const API = "http://13.235.128.156"; // ✅ YOUR EC2 URL (NO PORT)
 
+// 🔐 STORE SESSION
 let token = localStorage.getItem("token") || "";
 let user = JSON.parse(localStorage.getItem("user")) || null;
 
-// 🔐 SIGNUP
+
+// ================= SIGNUP =================
 async function signup() {
   const name = document.getElementById("signupName").value;
   const email = document.getElementById("signupEmail").value;
@@ -11,7 +13,9 @@ async function signup() {
 
   const res = await fetch(`${API}/api/auth/signup`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json"
+    },
     body: JSON.stringify({ name, email, password })
   });
 
@@ -20,32 +24,43 @@ async function signup() {
   if (data.error) {
     alert(data.error);
   } else {
-    alert("Signup successful. Now login.");
+    alert("Signup successful");
   }
 }
 
-// 🔐 LOGIN
+
+// ================= LOGIN =================
 async function login() {
   const email = document.getElementById("email").value;
   const password = document.getElementById("password").value;
 
   const res = await fetch(`${API}/api/auth/login`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json"
+    },
     body: JSON.stringify({ email, password })
   });
 
   const data = await res.json();
 
+  if (data.error) {
+    alert(data.error);
+    return;
+  }
+
   token = data.token;
+  user = data.user;
+
   localStorage.setItem("token", token);
-  localStorage.setItem("user", JSON.stringify(data.user));
+  localStorage.setItem("user", JSON.stringify(user));
 
   updateUI();
   getNotes();
 }
 
-// ➕ CREATE NOTE
+
+// ================= CREATE NOTE =================
 async function createNote() {
   const content = document.getElementById("noteInput").value;
 
@@ -62,7 +77,8 @@ async function createNote() {
   getNotes();
 }
 
-// 📥 GET NOTES
+
+// ================= GET NOTES =================
 async function getNotes() {
   if (!token) return;
 
@@ -99,7 +115,8 @@ async function getNotes() {
   });
 }
 
-// ❌ DELETE
+
+// ================= DELETE =================
 async function deleteNote(id) {
   await fetch(`${API}/api/notes/${id}`, {
     method: "DELETE",
@@ -111,7 +128,8 @@ async function deleteNote(id) {
   getNotes();
 }
 
-// ✏️ UPDATE
+
+// ================= UPDATE =================
 async function updateNote(id, content) {
   await fetch(`${API}/api/notes/${id}`, {
     method: "PUT",
@@ -125,14 +143,16 @@ async function updateNote(id, content) {
   getNotes();
 }
 
-// 🚪 LOGOUT
+
+// ================= LOGOUT =================
 function logout() {
   localStorage.removeItem("token");
   localStorage.removeItem("user");
   location.reload();
 }
 
-// 🎯 UI CONTROL
+
+// ================= UI CONTROL =================
 function updateUI() {
   const loginSection = document.getElementById("loginSection");
   const signupSection = document.getElementById("signupSection");
@@ -149,8 +169,10 @@ function updateUI() {
   }
 }
 
-// 🔁 AUTO LOAD
+
+// ================= AUTO LOAD =================
 updateUI();
+
 if (token) {
   getNotes();
 }
