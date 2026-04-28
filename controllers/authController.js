@@ -2,7 +2,7 @@ const pool = require("../db");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 
-// SIGNUP
+// ================= SIGNUP =================
 exports.signup = async (req, res) => {
   const { name, email, password } = req.body;
 
@@ -11,21 +11,34 @@ exports.signup = async (req, res) => {
   }
 
   try {
+    // 🔍 check if user already exists
+    const existing = await pool.query(
+      "SELECT * FROM users WHERE email = $1",
+      [email]
+    );
+
+    if (existing.rows.length > 0) {
+      return res.status(400).json({ error: "User already exists" });
+    }
+
+    // 🔐 hash password
     const hashed = await bcrypt.hash(password, 10);
 
+    // 💾 insert user
     const result = await pool.query(
       "INSERT INTO users (name, email, password) VALUES ($1,$2,$3) RETURNING id,name,email",
       [name, email, hashed]
     );
 
     res.json(result.rows[0]);
-  } catch (e) {
-    console.log(e);
-    res.status(500).json({ error: "Signup failed" });
+
+  } catch (err) {
+    console.log(err);
+    res.status(500).json({ error: "Server error" });
   }
 };
 
-// LOGIN
+// ================= LOGIN =================
 exports.login = async (req, res) => {
   const { email, password } = req.body;
 
@@ -54,16 +67,24 @@ exports.login = async (req, res) => {
     const token = jwt.sign(
       { id: user.id, email: user.email },
       process.env.JWT_SECRET,
-      { expiresIn: "7D" }
+      { expiresIn: "7d" }
     );
 
-    res.json({ token });
+    res.json({
+      token,
+      user: {
+        id: user.id,
+        email: user.email
+      }
+    });
 
   } catch (err) {
     console.log(err);
     res.status(500).json({ error: "Login failed" });
   }
 };
+
+// ================= UPDATE NOTE =================
 exports.updateNote = async (req, res) => {
   const { id } = req.params;
   const { content } = req.body;
@@ -75,11 +96,14 @@ exports.updateNote = async (req, res) => {
     );
 
     res.json(result.rows[0]);
+
   } catch (err) {
     console.log(err);
     res.status(500).json({ error: "Update failed" });
   }
 };
+
+// ================= DELETE NOTE =================
 exports.deleteNote = async (req, res) => {
   const { id } = req.params;
 
@@ -90,6 +114,7 @@ exports.deleteNote = async (req, res) => {
     );
 
     res.json({ message: "Note deleted" });
+
   } catch (err) {
     console.log(err);
     res.status(500).json({ error: "Delete failed" });

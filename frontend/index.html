@@ -2,20 +2,49 @@
 <html>
 <head>
   <title>Notes App</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<h2>Login</h2>
-<input id="email" placeholder="email">
-<input id="password" placeholder="password">
-<button onclick="login()">Login</button>
+<div class="container">
 
-<h2>Create Note</h2>
-<input id="note" placeholder="write note">
-<button onclick="createNote()">Add</button>
+  <h1>Notes App</h1>
 
-<h2>Your Notes</h2>
-<ul id="notes"></ul>
+  <!-- USER INFO -->
+  <p id="userInfo"></p>
+  <button onclick="logout()">Logout</button>
+
+  <!-- SIGNUP -->
+  <div id="signupSection" class="card">
+    <h2>Signup</h2>
+    <input id="signupName" placeholder="Name">
+    <input id="signupEmail" placeholder="Email">
+    <input id="signupPassword" type="password" placeholder="Password">
+    <button onclick="signup()">Signup</button>
+  </div>
+
+  <!-- LOGIN -->
+  <div id="loginSection" class="card">
+    <h2>Login</h2>
+    <input id="email" placeholder="Email">
+    <input id="password" type="password" placeholder="Password">
+    <button onclick="login()">Login</button>
+  </div>
+
+  <!-- CREATE NOTE -->
+  <div class="card">
+    <h2>Create Note</h2>
+    <input id="noteInput" placeholder="Write something...">
+    <button onclick="createNote()">Add</button>
+  </div>
+
+  <!-- NOTES -->
+  <div class="card">
+    <h2>Your Notes</h2>
+    <ul id="notes"></ul>
+  </div>
+
+</div>
 
 <script src="app.js"></script>
 </body>

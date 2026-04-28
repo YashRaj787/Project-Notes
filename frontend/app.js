@@ -1,26 +1,55 @@
-let token = "";
+const API = "13.235.128.156:3000";
 
+let token = localStorage.getItem("token") || "";
+let user = JSON.parse(localStorage.getItem("user")) || null;
+
+// 🔐 SIGNUP
+async function signup() {
+  const name = document.getElementById("signupName").value;
+  const email = document.getElementById("signupEmail").value;
+  const password = document.getElementById("signupPassword").value;
+
+  const res = await fetch(`${API}/api/auth/signup`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ name, email, password })
+  });
+
+  const data = await res.json();
+
+  if (data.error) {
+    alert(data.error);
+  } else {
+    alert("Signup successful. Now login.");
+  }
+}
+
+// 🔐 LOGIN
 async function login() {
   const email = document.getElementById("email").value;
   const password = document.getElementById("password").value;
 
-  const res = await fetch("http://localhost:3000/api/auth/login", {
+  const res = await fetch(`${API}/api/auth/login`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ email, password })
   });
 
   const data = await res.json();
-  token = data.token;
 
-  alert("Logged in");
+  token = data.token;
+  localStorage.setItem("token", token);
+  localStorage.setItem("user", JSON.stringify(data.user));
+
+  updateUI();
   getNotes();
 }
 
+// ➕ CREATE NOTE
 async function createNote() {
-  const content = document.getElementById("note").value;
+  const content = document.getElementById("noteInput").value;
 
-  await fetch("http://localhost:3000/api/notes", {
+  await fetch(`${API}/api/notes`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -29,11 +58,15 @@ async function createNote() {
     body: JSON.stringify({ content })
   });
 
+  document.getElementById("noteInput").value = "";
   getNotes();
 }
 
+// 📥 GET NOTES
 async function getNotes() {
-  const res = await fetch("http://localhost:3000/api/notes", {
+  if (!token) return;
+
+  const res = await fetch(`${API}/api/notes`, {
     headers: {
       "Authorization": "Bearer " + token
     }
@@ -45,29 +78,30 @@ async function getNotes() {
   list.innerHTML = "";
 
   data.forEach(note => {
-  const li = document.createElement("li");
+    const li = document.createElement("li");
 
-  const input = document.createElement("input");
-  input.value = note.content;
+    const input = document.createElement("input");
+    input.value = note.content;
 
-  const updateBtn = document.createElement("button");
-  updateBtn.innerText = "Update";
-  updateBtn.onclick = () => updateNote(note.id, input.value);
+    const updateBtn = document.createElement("button");
+    updateBtn.innerText = "Update";
+    updateBtn.onclick = () => updateNote(note.id, input.value);
 
-  const deleteBtn = document.createElement("button");
-  deleteBtn.innerText = "Delete";
-  deleteBtn.onclick = () => deleteNote(note.id);
+    const deleteBtn = document.createElement("button");
+    deleteBtn.innerText = "Delete";
+    deleteBtn.onclick = () => deleteNote(note.id);
 
-  li.appendChild(input);
-  li.appendChild(updateBtn);
-  li.appendChild(deleteBtn);
+    li.appendChild(input);
+    li.appendChild(updateBtn);
+    li.appendChild(deleteBtn);
 
-  list.appendChild(li);
-});
+    list.appendChild(li);
+  });
 }
 
+// ❌ DELETE
 async function deleteNote(id) {
-  await fetch(`http://localhost:3000/api/notes/${id}`, {
+  await fetch(`${API}/api/notes/${id}`, {
     method: "DELETE",
     headers: {
       "Authorization": "Bearer " + token
@@ -76,8 +110,10 @@ async function deleteNote(id) {
 
   getNotes();
 }
+
+// ✏️ UPDATE
 async function updateNote(id, content) {
-  await fetch(`http://localhost:3000/api/notes/${id}`, {
+  await fetch(`${API}/api/notes/${id}`, {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",
@@ -86,5 +122,35 @@ async function updateNote(id, content) {
     body: JSON.stringify({ content })
   });
 
+  getNotes();
+}
+
+// 🚪 LOGOUT
+function logout() {
+  localStorage.removeItem("token");
+  localStorage.removeItem("user");
+  location.reload();
+}
+
+// 🎯 UI CONTROL
+function updateUI() {
+  const loginSection = document.getElementById("loginSection");
+  const signupSection = document.getElementById("signupSection");
+  const userInfo = document.getElementById("userInfo");
+
+  if (token && user) {
+    loginSection.style.display = "none";
+    signupSection.style.display = "none";
+    userInfo.innerText = "Logged in as: " + user.email;
+  } else {
+    loginSection.style.display = "block";
+    signupSection.style.display = "block";
+    userInfo.innerText = "";
+  }
+}
+
+// 🔁 AUTO LOAD
+updateUI();
+if (token) {
   getNotes();
 }
