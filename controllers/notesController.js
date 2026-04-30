@@ -25,7 +25,7 @@ exports.createNote = async (req, res) => {
 exports.getNotes = async (req, res) => {
   try {
     const result = await pool.query(
-      "SELECT * FROM notes WHERE user_id = $1 ORDER BY created_at DESC",
+      "SELECT * FROM notes WHERE user_id = $1 ORDER BY id DESC",
       [req.user.id]
     );
 
