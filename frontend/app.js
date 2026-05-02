@@ -90,8 +90,8 @@ async function getNotes(search = "") {
   list.innerHTML = "";
 
   data.forEach(note => {
-    const li = document.createElement("li");
-
+const li = document.createElement("div");
+li.className = "note-card";
     const input = document.createElement("input");
     input.value = note.content;
 
