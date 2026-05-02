@@ -2,6 +2,7 @@ const pool = require("../db");
 
 // CREATE
 exports.createNote = async (req, res) => {
+const userId = req.user.id;
   const { content } = req.body;
 
   if (!content) {
@@ -11,7 +12,7 @@ exports.createNote = async (req, res) => {
   try {
     const result = await pool.query(
       "INSERT INTO notes (user_id, content) VALUES ($1, $2) RETURNING *",
-      [req.user.id, content]
+      [userId, content]
     );
 
     res.json(result.rows[0]);
@@ -23,10 +24,15 @@ exports.createNote = async (req, res) => {
 
 // READ
 exports.getNotes = async (req, res) => {
+  const search = req.query.search || "";
+
   try {
     const result = await pool.query(
-      "SELECT * FROM notes WHERE user_id = $1 ORDER BY id DESC",
-      [req.user.id]
+      `SELECT * FROM notes 
+       WHERE user_id = $1 
+       AND content ILIKE $2
+       ORDER BY id DESC`,
+      [req.user.id, `%${search}%`]
     );
 
     res.json(result.rows);

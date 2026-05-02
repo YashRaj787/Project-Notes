@@ -1,4 +1,4 @@
-const API = "http://13.235.128.156"; // ✅ YOUR EC2 URL (NO PORT)
+const API = "http://13.235.128.156";
 
 // 🔐 STORE SESSION
 let token = localStorage.getItem("token") || "";
@@ -13,9 +13,7 @@ async function signup() {
 
   const res = await fetch(`${API}/api/auth/signup`, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ name, email, password })
   });
 
@@ -36,9 +34,7 @@ async function login() {
 
   const res = await fetch(`${API}/api/auth/login`, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ email, password })
   });
 
@@ -79,10 +75,10 @@ async function createNote() {
 
 
 // ================= GET NOTES =================
-async function getNotes() {
+async function getNotes(search = "") {
   if (!token) return;
 
-  const res = await fetch(`${API}/api/notes`, {
+  const res = await fetch(`${API}/api/notes?search=${search}`, {
     headers: {
       "Authorization": "Bearer " + token
     }
@@ -176,3 +172,10 @@ updateUI();
 if (token) {
   getNotes();
 }
+
+
+// ================= SEARCH =================
+document.getElementById("search").addEventListener("input", (e) => {
+  const value = e.target.value;
+  getNotes(value);
+});
